@@ -1,39 +1,49 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import React from 'react';
 
-import {
-  Theme,
-  Container,
-  Flex,
-  Link as RadixLink,
-  Box,
-} from '@radix-ui/themes';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+
+import { ErrorBoundary } from 'react-error-boundary';
+
+import { Theme, Container, Spinner } from '@radix-ui/themes';
 
 import HomePage from './components/home.page';
 import AboutPage from './components/about.page';
 import ContactPage from './components/contact.page';
+import ErrorPage from './components/error.page';
+
+import Layout from './components/layout';
+
+import { routes } from './constants';
+
+// Lazy load routes
+const AdminPage = React.lazy(() => import('./components/admin.page'));
 
 function App() {
+  const navigate = useNavigate();
+
   return (
     <Theme accentColor='blue'>
       <Container size='4' p='4' align='left'>
-        <Flex gapX='4'>
-          <RadixLink asChild>
-            <Link to='/'>Home</Link>
-          </RadixLink>
-          <RadixLink asChild>
-            <Link to='/about'>About</Link>
-          </RadixLink>
-          <RadixLink asChild>
-            <Link to='/contact'>Contact</Link>
-          </RadixLink>
-        </Flex>
-
-        <Box height='20px' width='100%' />
-
         <Routes>
-          <Route path='/' element={<HomePage />} />
-          <Route path='/about' element={<AboutPage />} />
-          <Route path='/contact' element={<ContactPage />} />
+          <Route path={routes['home']} element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path={routes['about']} element={<AboutPage />} />
+            <Route path={routes['contact']} element={<ContactPage />} />
+          </Route>
+
+          <Route
+            path={routes['admin']}
+            element={
+              <ErrorBoundary
+                FallbackComponent={ErrorPage}
+                onReset={() => navigate('/')}
+              >
+                <React.Suspense fallback={<Spinner size='3' />}>
+                  <AdminPage />
+                </React.Suspense>
+              </ErrorBoundary>
+            }
+          />
         </Routes>
       </Container>
     </Theme>
